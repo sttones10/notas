@@ -215,12 +215,14 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
   </div>
 
   <script>
+  (function(){
     // Utilitários
     const $ = (s)=>document.querySelector(s);
     const el=(t,c)=>{const e=document.createElement(t); if(c) e.className=c; return e;};
     const fmt=(v)=> new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
     const store={set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),get:(k,d=null)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},del:(k)=>localStorage.removeItem(k)};
     const uuid=()=> (window.crypto&&window.crypto.randomUUID)? window.crypto.randomUUID(): 'id-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);
+    const on=(id,ev,fn)=>{const e=document.getElementById(id); if(e) e.addEventListener(ev,fn); else console.warn('Elemento não encontrado:',id)};
 
     // Estado
     const state={ selectedClientId: store.get('fatura_selected_client', null) };
@@ -237,6 +239,7 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     const clientSelect=$('#clientSelect');
 
     function renderClientSelect(){
+      if(!clientSelect) return;
       clientSelect.innerHTML='';
       const opt0 = el('option'); opt0.value=""; opt0.textContent='— selecionar —'; clientSelect.appendChild(opt0);
       clients.forEach(c=>{ const o=el('option'); o.value=c.id; o.textContent=c.name; clientSelect.appendChild(o); });
@@ -249,13 +252,14 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
         tr.innerHTML=`<td class="p-2">${c.name}</td><td class="p-2">${c.doc||''}</td>`;
         const td=el('td','p-2 text-right');
         const b1=el('button','px-2 py-1 rounded border mr-2'); b1.textContent='Editar'; b1.onclick=()=>openClientModal(c.id);
-        const b2=el('button','px-2 py-1 rounded border'); b2.textContent='Usar'; b2.onclick=()=>{fillClient(c); state.selectedClientId=c.id; store.set('fatura_selected_client', c.id); closeManageModal(); clientSelect.value=c.id;};
+        const b2=el('button','px-2 py-1 rounded border'); b2.textContent='Usar'; b2.onclick=()=>{fillClient(c); state.selectedClientId=c.id; store.set('fatura_selected_client', c.id); closeManageModal(); if(clientSelect) clientSelect.value=c.id;};
         td.append(b1,b2); tr.appendChild(td); tb.appendChild(tr);
       });
     }
     function saveClients(){ store.set('fatura_clients', clients); renderClientSelect(); renderClientsTable(); }
 
     function fillClient(c){
+      if(!c) return;
       inputs.clientName.value=c.name||'';
       inputs.clientDoc.value=c.doc||'';
       inputs.clientCEP.value=c.cep||'';
@@ -269,26 +273,27 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
 
     // ===== Modais =====
     function openClientModal(id=null){
-      const modal=$('#clientModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+      const modal=$('#clientModal'); if(!modal) return; modal.classList.remove('hidden'); modal.classList.add('flex');
       const c = id ? clients.find(x=>x.id===id) : {id:null};
       modal.dataset.id = c?.id || '';
       $('#m_name').value=c?.name||''; $('#m_doc').value=c?.doc||''; $('#m_addr').value=c?.addr||''; $('#m_city').value=c?.city||''; $('#m_uf').value=c?.uf||''; $('#m_cep').value=c?.cep||''; $('#m_ie').value=c?.ie||''; $('#m_contact').value=c?.contact||'';
     }
-    function closeClientModal(){ const m=$('#clientModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function closeClientModal(){ const m=$('#clientModal'); if(!m) return; m.classList.add('hidden'); m.classList.remove('flex'); }
 
-    function openManageModal(){ const m=$('#manageModal'); m.classList.remove('hidden'); m.classList.add('flex'); renderClientsTable(); }
-    function closeManageModal(){ const m=$('#manageModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+    function openManageModal(){ const m=$('#manageModal'); if(!m) return; m.classList.remove('hidden'); m.classList.add('flex'); renderClientsTable(); }
+    function closeManageModal(){ const m=$('#manageModal'); if(!m) return; m.classList.add('hidden'); m.classList.remove('flex'); }
 
-    // Eventos topo
-    $('#btnAddClient').addEventListener('click',()=>openClientModal());
-    $('#btnManageClients').addEventListener('click',()=>openManageModal());
-    $('#closeClientModal').addEventListener('click',closeClientModal);
-    $('#closeManageModal').addEventListener('click',closeManageModal);
+    // Eventos topo (com proteção)
+    on('btnAddClient','click',()=>openClientModal());
+    on('btnManageClients','click',()=>openManageModal());
+    on('closeClientModal','click',closeClientModal);
+    on('closeManageModal','click',closeManageModal);
     document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeClientModal(); closeManageModal(); }});
 
     // Salvar/Excluir cliente pelo modal
-    $('#btnSaveClient').addEventListener('click',()=>{
-      const id = $('#clientModal').dataset.id || uuid();
+    on('btnSaveClient','click',()=>{
+      const modal=$('#clientModal');
+      const id = modal?.dataset.id || uuid();
       const c = {
         id,
         name: $('#m_name').value.trim(),
@@ -299,27 +304,31 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       const idx = clients.findIndex(x=>x.id===id);
       if(idx>=0) clients[idx]=c; else clients.push(c);
       saveClients(); closeClientModal();
-      // aplica imediatamente
-      fillClient(c); clientSelect.value=c.id;
+      fillClient(c); if(clientSelect) clientSelect.value=c.id;
     });
 
-    $('#btnDeleteClient').addEventListener('click',()=>{
-      const id=$('#clientModal').dataset.id; if(!id) return; if(!confirm('Excluir este cliente?')) return;
+    on('btnDeleteClient','click',()=>{
+      const modal=$('#clientModal'); const id=modal?.dataset.id; if(!id) return; if(!confirm('Excluir este cliente?')) return;
       clients = clients.filter(x=>x.id!==id); saveClients(); closeClientModal(); renderClientsTable();
-      if(state.selectedClientId===id){ state.selectedClientId=null; store.del('fatura_selected_client'); clientSelect.value=''; }
+      if(state.selectedClientId===id){ state.selectedClientId=null; store.del('fatura_selected_client'); if(clientSelect) clientSelect.value=''; }
     });
 
-    clientSelect.addEventListener('change',()=>{ const c=clients.find(x=>x.id===clientSelect.value); if(c){ fillClient(c); } else { state.selectedClientId=null; store.del('fatura_selected_client'); }});
+    if(clientSelect){
+      clientSelect.addEventListener('change',()=>{ const c=clients.find(x=>x.id===clientSelect.value); if(c){ fillClient(c); } else { state.selectedClientId=null; store.del('fatura_selected_client'); }});
+    }
 
     // Export/Import clientes
-    $('#btnExportClients').addEventListener('click',()=>{ const data=JSON.stringify(clients,null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='clientes.json'; a.click(); URL.revokeObjectURL(url); });
+    on('btnExportClients','click',()=>{ const data=JSON.stringify(clients,null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='clientes.json'; a.click(); URL.revokeObjectURL(url); });
     const importClientsFile=$('#importClientsFile');
-    $('#btnImportClients').addEventListener('click',()=>importClientsFile.click());
-    importClientsFile.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ clients=JSON.parse(r.result)||[]; saveClients(); alert('Clientes importados.'); }catch{ alert('Arquivo inválido.'); } }; r.readAsText(f); });
+    on('btnImportClients','click',()=>importClientsFile?.click());
+    if(importClientsFile){
+      importClientsFile.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ clients=JSON.parse(r.result)||[]; saveClients(); alert('Clientes importados.'); }catch{ alert('Arquivo inválido.'); } }; r.readAsText(f); });
+    }
 
     // ===== Itens =====
     const itemsBody=$('#itemsBody');
     function addItemRow(item={code:'', desc:'', qty:1, unit:0}){
+      if(!itemsBody) return;
       const tr=el('tr');
       const tdCode=el('td','p-2 align-top');
       const tdDesc=el('td','p-2 align-top');
@@ -344,23 +353,24 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     }
 
     function captureItems(){
+      if(!itemsBody) return [];
       return [...itemsBody.querySelectorAll('tr')].map(r=>{
         const [code,desc,unit]=r.querySelectorAll('input, textarea');
-        return {code:code.value, desc:desc.value, qty:1, unit:parseFloat(unit.value)||0};
+        return {code:code?.value||'', desc:desc?.value||'', qty:1, unit:parseFloat(unit?.value)||0};
       });
     }
     function updateTotals(){
       const total=captureItems().reduce((a,it)=>a+(it.unit*(it.qty||1)),0);
-      $('#totalView').textContent=fmt(total);
+      const tv=document.getElementById('totalView'); if(tv) tv.textContent=fmt(total);
     }
 
-    $('#btnAddItem').addEventListener('click',()=>addItemRow());
+    on('btnAddItem','click',()=>addItemRow());
 
     // ===== Persistência da fatura =====
     function capture(){
       return {
-        invNumber: $('#invNumberView').textContent,
-        invDate: $('#invDateView').textContent.split('/').reverse().join('-'),
+        invNumber: document.getElementById('invNumberView')?.textContent||'',
+        invDate: (document.getElementById('invDateView')?.textContent||'').split('/').reverse().join('-'),
         clientName: inputs.clientName.value, clientDoc: inputs.clientDoc.value, clientCEP: inputs.clientCEP.value, clientUF: inputs.clientUF.value, clientAddr: inputs.clientAddr.value, clientCity: inputs.clientCity.value, clientIE: inputs.clientIE.value,
         contractNum: inputs.contractNum.value, pcNum: inputs.pcNum.value, monthlyValue: parseFloat(inputs.monthlyValue.value)||0, dueDate: inputs.dueDate.value,
         paymentTerms: inputs.paymentTerms.value, bankData: inputs.bankData.value, notes: inputs.notes.value,
@@ -368,41 +378,42 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       };
     }
     function apply(d){
-      $('#invNumberView').textContent = d.invNumber || '000';
-      $('#invNumberView2')?.textContent = d.invNumber || '000';
-      $('#invDateView').textContent = (d.invDate||'').split('-').reverse().join('/') || '';
+      const n1=document.getElementById('invNumberView'); const n2=document.getElementById('invNumberView2'); const dv=document.getElementById('invDateView');
+      if(n1) n1.textContent = d.invNumber || '000';
+      if(n2) n2.textContent = d.invNumber || '000';
+      if(dv) dv.textContent = (d.invDate||'').split('-').reverse().join('/') || '';
       for(const k of Object.keys(inputs)){ if(inputs[k]) inputs[k].value = d[k] ?? inputs[k].value; }
-      itemsBody.innerHTML=''; (d.items||[]).forEach(addItemRow); updateTotals();
+      if(itemsBody){ itemsBody.innerHTML=''; (d.items||[]).forEach(addItemRow); updateTotals(); }
     }
     function persistAll(){ store.set('fatura_current', capture()); }
 
     // refletir inputs cabeçalho
-    $('#invNumber')?.addEventListener('input',()=>{ $('#invNumberView').textContent = $('#invNumber').value || '000'; $('#invNumberView2')?.textContent = $('#invNumber').value || '000'; persistAll(); });
-    $('#invDate')?.addEventListener('change',()=>{ const d=$('#invDate').value; $('#invDateView').textContent = d? d.split('-').reverse().join('/') : '__/__/____'; persistAll(); });
+    const invNumber=document.getElementById('invNumber');
+    const invDate=document.getElementById('invDate');
+    if(invNumber){ invNumber.addEventListener('input',()=>{ const v=invNumber.value||'000'; const n1=document.getElementById('invNumberView'); const n2=document.getElementById('invNumberView2'); if(n1) n1.textContent=v; if(n2) n2.textContent=v; persistAll(); }); }
+    if(invDate){ invDate.addEventListener('change',()=>{ const d=invDate.value; const dv=document.getElementById('invDateView'); if(dv) dv.textContent = d? d.split('-').reverse().join('/') : '__/__/____'; persistAll(); }); }
 
     // Rascunho + impressão
-    $('#btnSaveCurrent').addEventListener('click',()=>{ persistAll(); alert('Rascunho salvo.'); });
-    $('#btnLoadCurrent').addEventListener('click',()=>{ const d=store.get('fatura_current'); if(d) apply(d); else alert('Nenhum rascunho.'); });
-    $('#btnPrint').addEventListener('click',()=>window.print());
+    on('btnSaveCurrent','click',()=>{ persistAll(); alert('Rascunho salvo.'); });
+    on('btnLoadCurrent','click',()=>{ const d=store.get('fatura_current'); if(d) apply(d); else alert('Nenhum rascunho.'); });
+    on('btnPrint','click',()=>window.print());
 
     // Init
-    (function(){
-      renderClientSelect();
-      const d=store.get('fatura_current');
-      if(d){ apply(d); }
-      else{
-        apply({
-          invNumber:'299', invDate:'2025-08-30',
-          clientName:'PRUMO ENGENHARIA EIRELI', clientDoc:'20.651.311/0001-28', clientCEP:'35570009', clientUF:'MG', clientAddr:'PÁTIO DA ESTAÇÃO FERROVIÁRIA, 15 – CENTRO', clientCity:'FORMIGA', clientIE:'2.612.401.260.076',
-          contractNum:'3531/2022', pcNum:'447377', monthlyValue:18000, dueDate:'2025-10-07',
-          paymentTerms:'DEPÓSITO BANCÁRIO', bankData:`BANCO DO BRASIL\nAGÊNCIA: 2372-8\nCONTA CORRENTE: 20567-2\nTRANSELIAN TRANSPORTES LTDA`,
-          notes:'DESCONTO COMPRA DE 4 PNEUS (EDIM) SEGUNDA PARCELA : R$ 4.200,00',
-          items:[{code:'',desc:`LOCAÇÃO DE CAMINHÃO MUNCK, SEM MOTORISTA.\nPLACA DO CAMINHÃO : RUB1A61\nPERÍODO: 26/07/2025 a 25/08/2025\nVENCIMENTO: 07/10/2025`, qty:1, unit:13800.00}]
-        });
-      }
-      // reaplicar cliente previamente selecionado
-      if(state.selectedClientId){ const c=clients.find(x=>x.id===state.selectedClientId); if(c){ fillClient(c); clientSelect.value=c.id; }}
-    })();
+    renderClientSelect();
+    const d=store.get('fatura_current');
+    if(d){ apply(d); }
+    else{
+      apply({
+        invNumber:'299', invDate:'2025-08-30',
+        clientName:'PRUMO ENGENHARIA EIRELI', clientDoc:'20.651.311/0001-28', clientCEP:'35570009', clientUF:'MG', clientAddr:'PÁTIO DA ESTAÇÃO FERROVIÁRIA, 15 – CENTRO', clientCity:'FORMIGA', clientIE:'2.612.401.260.076',
+        contractNum:'3531/2022', pcNum:'447377', monthlyValue:18000, dueDate:'2025-10-07',
+        paymentTerms:'DEPÓSITO BANCÁRIO', bankData:`BANCO DO BRASIL\nAGÊNCIA: 2372-8\nCONTA CORRENTE: 20567-2\nTRANSELIAN TRANSPORTES LTDA`,
+        notes:'DESCONTO COMPRA DE 4 PNEUS (EDIM) SEGUNDA PARCELA : R$ 4.200,00',
+        items:[{code:'',desc:`LOCAÇÃO DE CAMINHÃO MUNCK, SEM MOTORISTA.\nPLACA DO CAMINHÃO : RUB1A61\nPERÍODO: 26/07/2025 a 25/08/2025\nVENCIMENTO: 07/10/2025`, qty:1, unit:13800.00}]
+      });
+    }
+    if(state.selectedClientId){ const c=clients.find(x=>x.id===state.selectedClientId); if(c){ fillClient(c); if(clientSelect) clientSelect.value=c.id; }}
+  })();
   </script>
 </body>
 </html>

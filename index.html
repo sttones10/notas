@@ -434,13 +434,18 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     }
 
     document.getElementById('btnExportPDF').addEventListener('click',()=>{
-      const fileName=getFileName();
-      console.log("Sugestão de nome do arquivo:",fileName);
+      const fileName = getFileName();
+      // Tenta forçar o nome usando o título da página (funciona nos principais navegadores)
+      const originalTitle = document.title;
+      document.title = fileName.replace(/\.pdf$/,'');
+      const restore = () => { document.title = originalTitle; window.removeEventListener('afterprint', restore); };
+      window.addEventListener('afterprint', restore);
       window.print();
     });
   })();
   </script>
 </body>
 </html>
+
 
 

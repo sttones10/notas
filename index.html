@@ -17,31 +17,6 @@
     .kv label{ font-size:11px; color:#374151; display:block; }
     .kv input, .kv textarea, .kv select{ width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; font-size:12px; background:#fff; }
     .kv .ro{ background:#f8fafc; }
-
-    /* Deixar os spinners menores e discretos */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      transform: scale(0.6);
-      margin: 0 -4px;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-
-    /* Ajuste específico para o campo Dados Bancários */
-    #bankData {
-      resize: vertical !important;
-      min-height: 80px;
-      overflow-y: auto;
-    }
-
-    /* Ajuste específico para o campo Descrição/Quantidade */
-    #itemsBody textarea {
-      resize: vertical !important;
-      min-height: 80px;
-      overflow-y: auto;
-    }
-
     @media print {
       .no-print { display:none!important; }
       body { background:white; margin:0; }
@@ -49,10 +24,6 @@
       a[href]:after { content: none !important; }
       @page { margin: 10mm; }
       header, footer { display: none !important; }
-      input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
-      input[type=number]::-webkit-outer-spin-button,
-      input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-      #bankData, #itemsBody textarea { resize:vertical !important; overflow:visible !important; height:auto !important; }
     }
   </style>
 </head>
@@ -472,51 +443,6 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       window.print();
     });
   })();
-    // Auto‑ajuste de altura para "Dados Bancários" e todas as descrições (#itemsBody textarea)
-    (function(){
-      function autosize(el){
-        if(!el) return;
-        el.style.height = 'auto';
-        el.style.height = (el.scrollHeight) + 'px';
-      }
-      // BANK DATA
-      const bank = document.getElementById('bankData');
-      if(bank){
-        ['input','change'].forEach(evt=> bank.addEventListener(evt, ()=> autosize(bank)));
-        window.addEventListener('load', ()=> autosize(bank));
-        window.addEventListener('beforeprint', ()=> autosize(bank));
-      }
-      // DESCRIÇÕES EXISTENTES
-      function hookTextarea(tx){
-        if(!tx || tx.__autosized) return; // evita duplicar listeners
-        tx.__autosized = true;
-        ['input','change'].forEach(evt=> tx.addEventListener(evt, ()=> autosize(tx)));
-        autosize(tx);
-      }
-      // Inicial
-      document.querySelectorAll('#itemsBody textarea').forEach(hookTextarea);
-      // Delegação para qualquer textarea criada depois (ex.: Adicionar item)
-      document.addEventListener('input', (e)=>{
-        if(e.target && e.target.tagName==='TEXTAREA' && e.target.closest('#itemsBody')){
-          hookTextarea(e.target);
-        }
-      });
-      // Observer para novas linhas/descrições inseridas dinamicamente
-      const itemsBody = document.getElementById('itemsBody');
-      if(itemsBody){
-        const mo = new MutationObserver(()=>{
-          itemsBody.querySelectorAll('textarea').forEach(hookTextarea);
-        });
-        mo.observe(itemsBody, {childList:true, subtree:true});
-      }
-      // Ajustar antes de imprimir (garante tudo expandido no PDF)
-      window.addEventListener('beforeprint', ()=>{
-        document.querySelectorAll('#itemsBody textarea').forEach(autosize);
-      });
-    })();
   </script>
 </body>
 </html>
-
-
-

@@ -19,9 +19,11 @@
     .kv .ro{ background:#f8fafc; }
     @media print {
       .no-print { display:none!important; }
-      body { background:white; }
+      body { background:white; margin:0; }
       .shadow-xl{ box-shadow:none; }
       a[href]:after { content: none !important; }
+      @page { margin: 10mm; }
+      header, footer { display: none !important; }
     }
   </style>
 </head>
@@ -308,6 +310,7 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
   </script>
 </body>
 </html>
+
 
 
 

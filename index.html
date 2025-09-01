@@ -8,14 +8,14 @@
   <style>
     :root{ --ink:#1f2937; }
     body { background:#f1f5f9; color:#111; }
-    .box { border:1.5px solid var(--ink); }
+    .box { border:1.5px solid var(--ink); border-radius:10px; }
     .title { background:#e5e7eb; font-weight:600; padding:6px 10px; border-top:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); }
     table.invoice { width:100%; border-collapse:collapse; }
     table.invoice th, table.invoice td{ border-left:1px solid var(--ink); border-right:1px solid var(--ink); }
     table.invoice thead tr{ border-top:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); }
     table.invoice tfoot tr{ border-top:1.5px solid var(--ink); }
     .kv label{ font-size:11px; color:#374151; display:block; }
-    .kv input, .kv textarea, .kv select{ width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; }
+    .kv input, .kv textarea, .kv select{ width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; font-size:12px; background:#fff; }
     .kv .ro{ background:#f8fafc; }
     @media print {
       .no-print { display:none!important; }
@@ -32,6 +32,7 @@
     <div class="flex items-center gap-2">
       <select id="clientSelect" class="border rounded px-2 py-2 text-sm min-w-[240px]"></select>
       <button id="btnAddClient" class="px-3 py-2 rounded bg-indigo-600 text-white">+ Cliente</button>
+      <button id="btnManageClients" class="px-3 py-2 rounded border">Gerenciar</button>
       <button id="btnExportClients" class="px-3 py-2 rounded border">Exportar</button>
       <input id="importClientsFile" type="file" accept="application/json" class="hidden" />
       <button id="btnImportClients" class="px-3 py-2 rounded border">Importar</button>
@@ -45,12 +46,10 @@
 
   <div id="app" class="bg-white shadow-xl rounded-xl overflow-hidden box">
     <!-- TOPO -->
-    <section class="grid grid-cols-12">
+    <section class="grid grid-cols-12 items-center">
       <!-- Logo + empresa -->
-      <div class="col-span-9 p-1 flex gap-2 items-start">
-        <div class="flex flex-col items-start gap-1">
-          <img id="logoPreview" class="w-32 h-12 object-contain" alt="Logo" src="https://sttones10.github.io/notas/logo%20transelian.png"/>
-        </div>
+      <div class="col-span-9 p-1 flex gap-2 items-center">
+        <img id="logoPreview" class="w-32 h-12 object-contain" alt="Logo" src="https://sttones10.github.io/notas/logo%20transelian.png"/>
         <div class="text-center w-full">
           <div class="text-[14px] font-bold">TRANSELIAN TRANSPORTES LTDA - ME</div>
           <div class="text-[11px] leading-tight">
@@ -75,11 +74,11 @@
       </div>
     </section>
 
-    <!-- DEST/CONTRATO/PAG/OBS -->
+    <!-- DESTINATÁRIO -->
     <section class="grid grid-cols-12">
       <div class="col-span-12 box border-l-0 border-r-0">
         <div class="title">DESTINATÁRIO</div>
-        <div class="p-3 grid grid-cols-12 gap-3 kv text-[12px]">
+        <div class="p-2 grid grid-cols-12 gap-2 kv text-[11px]">
           <div class="col-span-6"><label>Razão Social</label><input id="clientName"/></div>
           <div class="col-span-3"><label>CNPJ / CPF</label><input id="clientDoc"/></div>
           <div class="col-span-2"><label>CEP</label><input id="clientCEP"/></div>
@@ -89,10 +88,13 @@
           <div class="col-span-1"><label>Inscr. Est.</label><input id="clientIE"/></div>
         </div>
       </div>
+    </section>
 
+    <!-- CONTRATO / PAGAMENTO -->
+    <section class="grid grid-cols-12">
       <div class="col-span-12 box border-l-0 border-r-0">
         <div class="title grid grid-cols-2"><span>CONTRATO</span><span class="text-right pr-2">PAGAMENTO</span></div>
-        <div class="p-3 grid grid-cols-12 gap-3 kv text-[12px]">
+        <div class="p-2 grid grid-cols-12 gap-2 kv text-[11px]">
           <div class="col-span-3"><label>Contrato</label><input id="contractNum"/></div>
           <div class="col-span-3"><label>PC</label><input id="pcNum"/></div>
           <div class="col-span-3"><label>Valor Mensal</label><input id="monthlyValue" type="number" step="0.01"/></div>
@@ -106,11 +108,14 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
           </div>
         </div>
       </div>
+    </section>
 
+    <!-- OBSERVAÇÃO -->
+    <section class="grid grid-cols-12">
       <div class="col-span-12 box border-l-0 border-r-0">
         <div class="title">OBSERVAÇÃO</div>
-        <div class="p-3 kv text-[12px]">
-          <textarea id="notes" rows="3">DESCONTO COMPRA DE 4 PNEUS (EDIM) SEGUNDA PARCELA : R$ 4.200,00</textarea>
+        <div class="p-2 kv text-[11px]">
+          <textarea id="notes" rows="2">DESCONTO COMPRA DE 4 PNEUS (EDIM) SEGUNDA PARCELA : R$ 4.200,00</textarea>
         </div>
       </div>
     </section>
@@ -118,18 +123,18 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     <!-- DADOS DA LOCAÇÃO -->
     <section>
       <div class="title">DADOS DA LOCAÇÃO</div>
-      <div class="no-print p-3 flex items-center gap-2">
-        <button id="btnAddItem" class="px-3 py-2 rounded border">Adicionar item</button>
+      <div class="no-print p-2 flex items-center gap-2">
+        <button id="btnAddItem" class="px-2 py-1 rounded border text-sm">Adicionar item</button>
       </div>
       <div class="overflow-x-auto">
-        <table class="invoice text-[12px]">
+        <table class="invoice text-[11px]">
           <thead class="bg-gray-100">
             <tr>
               <th class="text-left p-2 w-24">Código</th>
               <th class="text-left p-2">Descrição / Quantidade</th>
               <th class="text-right p-2 w-32">Valor Unitário</th>
               <th class="text-right p-2 w-32">Valor Total</th>
-              <th class="no-print w-24"></th>
+              <th class="no-print w-20"></th>
             </tr>
           </thead>
           <tbody id="itemsBody"></tbody>
@@ -137,7 +142,7 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
             <tr>
               <td class="p-2" colspan="2"></td>
               <td class="p-2 text-right font-semibold">Valor Total da Fatura:</td>
-              <td class="p-2 text-right font-bold text-[14px]" id="totalView">R$ 0,00</td>
+              <td class="p-2 text-right font-bold text-[13px]" id="totalView">R$ 0,00</td>
               <td class="no-print"></td>
             </tr>
           </tfoot>
@@ -148,48 +153,103 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     <!-- RECIBO -->
     <section class="grid grid-cols-12">
       <div class="col-span-12 box border-l-0 border-r-0">
-        <div class="p-3 text-[11px]">
+        <div class="p-2 text-[10px]">
           RECEBI(EMOS) DE <span class="font-semibold">EMPRESA</span>, AS LOCAÇÕES CONSTANTES NESSA FATURA INDICADA AO LADO.
         </div>
       </div>
       <div class="col-span-6 box border-l-0 border-r-0">
-        <div class="p-3 grid grid-cols-12 text-[12px] gap-2">
+        <div class="p-2 grid grid-cols-12 text-[11px] gap-2">
           <div class="col-span-6">DATA DO RECEBIMENTO</div>
           <div class="col-span-6">IDENTIFICAÇÃO E ASSINATURA DO RECEBEDOR</div>
         </div>
       </div>
       <div class="col-span-6 box border-l-0 border-r-0">
-        <div class="p-3 text-right text-[13px]">N°: <span id="invNumberView2">299</span></div>
+        <div class="p-2 text-right text-[12px]">N°: <span id="invNumberView2">299</span></div>
       </div>
     </section>
   </div>
 
+  <!-- MODAL: Cliente (criar/editar) -->
+  <div id="clientModal" class="no-print fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white w-[680px] max-w-[95vw] rounded-xl shadow-xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-lg font-semibold">Cliente</h3>
+        <button id="closeClientModal" class="px-2 py-1 rounded border">Fechar</button>
+      </div>
+      <div class="grid grid-cols-12 gap-3 kv text-[12px]">
+        <div class="col-span-8"><label>Razão Social</label><input id="m_name" /></div>
+        <div class="col-span-4"><label>CNPJ/CPF</label><input id="m_doc" /></div>
+        <div class="col-span-8"><label>Endereço</label><input id="m_addr" /></div>
+        <div class="col-span-3"><label>Cidade</label><input id="m_city" /></div>
+        <div class="col-span-1"><label>UF</label><input id="m_uf" /></div>
+        <div class="col-span-3"><label>CEP</label><input id="m_cep" /></div>
+        <div class="col-span-3"><label>Inscr. Estadual</label><input id="m_ie" /></div>
+        <div class="col-span-12"><label>Contato (opcional)</label><input id="m_contact" /></div>
+      </div>
+      <div class="flex items-center justify-between mt-4">
+        <div class="text-sm text-slate-600">Os clientes ficam salvos no seu navegador (localStorage).</div>
+        <div class="flex gap-2">
+          <button id="btnDeleteClient" class="px-3 py-2 rounded border border-rose-300 text-rose-700">Excluir</button>
+          <button id="btnSaveClient" class="px-3 py-2 rounded bg-indigo-600 text-white">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Gerenciar clientes -->
+  <div id="manageModal" class="no-print fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white w-[720px] max-w-[95vw] rounded-xl shadow-xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-lg font-semibold">Gerenciar clientes</h3>
+        <button id="closeManageModal" class="px-2 py-1 rounded border">Fechar</button>
+      </div>
+      <div class="max-h-[60vh] overflow-y-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-50">
+            <tr><th class="p-2 text-left">Razão Social</th><th class="p-2 text-left">Documento</th><th class="p-2">Ações</th></tr>
+          </thead>
+          <tbody id="clientsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Utilitários
     const $ = (s)=>document.querySelector(s);
     const el=(t,c)=>{const e=document.createElement(t); if(c) e.className=c; return e;};
     const fmt=(v)=> new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
     const store={set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),get:(k,d=null)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},del:(k)=>localStorage.removeItem(k)};
 
+    // Inputs principais
     const inputs={
       clientName: $('#clientName'), clientDoc: $('#clientDoc'), clientCEP: $('#clientCEP'), clientUF: $('#clientUF'), clientAddr: $('#clientAddr'), clientCity: $('#clientCity'), clientIE: $('#clientIE'),
       contractNum: $('#contractNum'), pcNum: $('#pcNum'), monthlyValue: $('#monthlyValue'), dueDate: $('#dueDate'),
       paymentTerms: $('#paymentTerms'), bankData: $('#bankData'), notes: $('#notes'),
-      invNumber: $('#invNumber'), invDate: $('#invDate')
     };
 
+    // ===== Banco de dados (localStorage) =====
+    let clients = store.get('fatura_clients', []);
     const clientSelect=$('#clientSelect');
-    let clients=store.get('fatura_clients',[]);
 
-    function renderClients(){
-      clientSelect.innerHTML='<option value="">— selecionar —</option>';
-      clients.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name;clientSelect.appendChild(o);});
+    function renderClientSelect(){
+      clientSelect.innerHTML='';
+      const opt0 = el('option'); opt0.value=""; opt0.textContent='— selecionar —'; clientSelect.appendChild(opt0);
+      clients.forEach(c=>{ const o=el('option'); o.value=c.id; o.textContent=c.name; clientSelect.appendChild(o); });
     }
-    function saveClient(c){
-      const idx=clients.findIndex(x=>x.id===c.id);
-      if(idx>=0) clients[idx]=c; else clients.push(c);
-      store.set('fatura_clients',clients);
-      renderClients();
+    function renderClientsTable(){
+      const tb=$('#clientsTable'); if(!tb) return; tb.innerHTML='';
+      clients.forEach(c=>{
+        const tr=el('tr');
+        tr.innerHTML=`<td class="p-2">${c.name}</td><td class="p-2">${c.doc||''}</td>`;
+        const td=el('td','p-2 text-right');
+        const b1=el('button','px-2 py-1 rounded border mr-2'); b1.textContent='Editar'; b1.onclick=()=>openClientModal(c.id);
+        const b2=el('button','px-2 py-1 rounded border'); b2.textContent='Usar'; b2.onclick=()=>{fillClient(c); closeManageModal();};
+        td.append(b1,b2); tr.appendChild(td); tb.appendChild(tr);
+      });
     }
+    function saveClients(){ store.set('fatura_clients', clients); renderClientSelect(); renderClientsTable(); }
+
     function fillClient(c){
       inputs.clientName.value=c.name||'';
       inputs.clientDoc.value=c.doc||'';
@@ -201,24 +261,57 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       persistAll();
     }
 
-    // cliente novo (prompt simples)
-    $('#btnAddClient').addEventListener('click',()=>{
-      const name=prompt('Razão Social:'); if(!name) return;
-      const doc=prompt('CNPJ/CPF:');
-      const addr=prompt('Endereço:');
-      const city=prompt('Cidade:');
-      const uf=prompt('UF:');
-      const cep=prompt('CEP:');
-      const ie=prompt('Inscrição Estadual:');
-      const c={id:crypto.randomUUID(),name,doc,addr,city,uf,cep,ie};
-      saveClient(c);
-      clientSelect.value=c.id; fillClient(c);
+    // ===== Modais =====
+    function openClientModal(id=null){
+      const modal=$('#clientModal'); modal.classList.remove('hidden'); modal.classList.add('flex');
+      const c = id ? clients.find(x=>x.id===id) : {id:null};
+      modal.dataset.id = c?.id || '';
+      $('#m_name').value=c?.name||''; $('#m_doc').value=c?.doc||''; $('#m_addr').value=c?.addr||''; $('#m_city').value=c?.city||''; $('#m_uf').value=c?.uf||''; $('#m_cep').value=c?.cep||''; $('#m_ie').value=c?.ie||''; $('#m_contact').value=c?.contact||'';
+    }
+    function closeClientModal(){ const m=$('#clientModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+
+    function openManageModal(){ const m=$('#manageModal'); m.classList.remove('hidden'); m.classList.add('flex'); renderClientsTable(); }
+    function closeManageModal(){ const m=$('#manageModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+
+    // Eventos topo
+    $('#btnAddClient').addEventListener('click',()=>openClientModal());
+    $('#btnManageClients').addEventListener('click',()=>openManageModal());
+    $('#closeClientModal').addEventListener('click',closeClientModal);
+    $('#closeManageModal').addEventListener('click',closeManageModal);
+
+    // Salvar/Excluir cliente pelo modal
+    $('#btnSaveClient').addEventListener('click',()=>{
+      const id = $('#clientModal').dataset.id || crypto.randomUUID();
+      const c = {
+        id,
+        name: $('#m_name').value.trim(),
+        doc: $('#m_doc').value.trim(),
+        addr: $('#m_addr').value.trim(),
+        city: $('#m_city').value.trim(), uf: $('#m_uf').value.trim(), cep: $('#m_cep').value.trim(), ie: $('#m_ie').value.trim(), contact: $('#m_contact').value.trim()
+      };
+      const idx = clients.findIndex(x=>x.id===id);
+      if(idx>=0) clients[idx]=c; else clients.push(c);
+      saveClients(); closeClientModal();
+      // aplica imediatamente
+      fillClient(c); clientSelect.value=c.id;
     });
+
+    $('#btnDeleteClient').addEventListener('click',()=>{
+      const id=$('#clientModal').dataset.id; if(!id) return; if(!confirm('Excluir este cliente?')) return;
+      clients = clients.filter(x=>x.id!==id); saveClients(); closeClientModal(); renderClientsTable();
+    });
+
     clientSelect.addEventListener('change',()=>{ const c=clients.find(x=>x.id===clientSelect.value); if(c) fillClient(c); });
 
-    // Itens
+    // Export/Import clientes
+    $('#btnExportClients').addEventListener('click',()=>{ const data=JSON.stringify(clients,null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='clientes.json'; a.click(); URL.revokeObjectURL(url); });
+    const importClientsFile=$('#importClientsFile');
+    $('#btnImportClients').addEventListener('click',()=>importClientsFile.click());
+    importClientsFile.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ clients=JSON.parse(r.result)||[]; saveClients(); alert('Clientes importados.'); }catch{ alert('Arquivo inválido.'); } }; r.readAsText(f); });
+
+    // ===== Itens =====
     const itemsBody=$('#itemsBody');
-    function addItemRow(item={code:'',desc:'',qty:1,unit:0}){
+    function addItemRow(item={code:'', desc:'', qty:1, unit:0}){
       const tr=el('tr');
       const tdCode=el('td','p-2 align-top');
       const tdDesc=el('td','p-2 align-top');
@@ -255,7 +348,7 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
 
     $('#btnAddItem').addEventListener('click',()=>addItemRow());
 
-    // persistência
+    // ===== Persistência da fatura =====
     function capture(){
       return {
         invNumber: $('#invNumberView').textContent,
@@ -268,35 +361,28 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     }
     function apply(d){
       $('#invNumberView').textContent = d.invNumber || '000';
-      $('#invNumberView2').textContent = d.invNumber || '000';
+      $('#invNumberView2')?.textContent = d.invNumber || '000';
       $('#invDateView').textContent = (d.invDate||'').split('-').reverse().join('/') || '';
       for(const k of Object.keys(inputs)){ if(inputs[k]) inputs[k].value = d[k] ?? inputs[k].value; }
       itemsBody.innerHTML=''; (d.items||[]).forEach(addItemRow); updateTotals();
     }
     function persistAll(){ store.set('fatura_current', capture()); }
 
-    // refletir inputs de número/data no cabeçalho
-    inputs.invNumber?.addEventListener('input',()=>{ $('#invNumberView').textContent = inputs.invNumber.value || '000'; $('#invNumberView2').textContent = inputs.invNumber.value || '000'; persistAll(); });
-    inputs.invDate?.addEventListener('change',()=>{ const d=inputs.invDate.value; $('#invDateView').textContent = d? d.split('-').reverse().join('/') : '__/__/____'; persistAll(); });
+    // refletir inputs cabeçalho
+    $('#invNumber')?.addEventListener('input',()=>{ $('#invNumberView').textContent = $('#invNumber').value || '000'; $('#invNumberView2')?.textContent = $('#invNumber').value || '000'; persistAll(); });
+    $('#invDate')?.addEventListener('change',()=>{ const d=$('#invDate').value; $('#invDateView').textContent = d? d.split('-').reverse().join('/') : '__/__/____'; persistAll(); });
 
-    // export/import clientes
-    $('#btnExportClients').addEventListener('click',()=>{ const data=JSON.stringify(clients,null,2); const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='clientes.json'; a.click(); URL.revokeObjectURL(url); });
-    const importClientsFile=$('#importClientsFile');
-    $('#btnImportClients').addEventListener('click',()=>importClientsFile.click());
-    importClientsFile.addEventListener('change',(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ clients=JSON.parse(r.result)||[]; store.set('fatura_clients',clients); renderClients(); alert('Clientes importados.'); }catch{ alert('Arquivo inválido.'); } }; r.readAsText(f); });
-
-    // rascunho + impressão
+    // Rascunho + impressão
     $('#btnSaveCurrent').addEventListener('click',()=>{ persistAll(); alert('Rascunho salvo.'); });
     $('#btnLoadCurrent').addEventListener('click',()=>{ const d=store.get('fatura_current'); if(d) apply(d); else alert('Nenhum rascunho.'); });
     $('#btnPrint').addEventListener('click',()=>window.print());
 
-    // init
+    // Init
     (function(){
-      renderClients();
+      renderClientSelect();
       const d=store.get('fatura_current');
       if(d){ apply(d); }
       else{
-        // dados iniciais de exemplo
         apply({
           invNumber:'299', invDate:'2025-08-30',
           clientName:'PRUMO ENGENHARIA EIRELI', clientDoc:'20.651.311/0001-28', clientCEP:'35570009', clientUF:'MG', clientAddr:'PÁTIO DA ESTAÇÃO FERROVIÁRIA, 15 – CENTRO', clientCity:'FORMIGA', clientIE:'2.612.401.260.076',
@@ -310,7 +396,3 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
   </script>
 </body>
 </html>
-
-
-
-

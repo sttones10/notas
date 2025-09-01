@@ -414,7 +414,33 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
     }
     if(state.selectedClientId){ const c=clients.find(x=>x.id===state.selectedClientId); if(c){ fillClient(c); if(clientSelect) clientSelect.value=c.id; }}
   })();
+      (function(){
+    const $ = (s)=>document.querySelector(s);
+
+    function getFileName(){
+      const client = $('#clientName')?.value?.trim() || 'Cliente';
+      const num = $('#invNumberView')?.textContent?.trim() || '000';
+      const data = $('#invDateView')?.textContent?.trim() || '';
+      let mes = '';
+      if(data){
+        const partes=data.split('/');
+        if(partes.length>=2){
+          const mesNum = parseInt(partes[1],10);
+          const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+          mes = meses[mesNum-1] || '';
+        }
+      }
+      return `${client} - Nota ${num} - ${mes}.pdf`;
+    }
+
+    document.getElementById('btnExportPDF').addEventListener('click',()=>{
+      const fileName=getFileName();
+      console.log("Sugestão de nome do arquivo:",fileName);
+      window.print();
+    });
+  })();
   </script>
 </body>
 </html>
+
 

@@ -17,6 +17,17 @@
     .kv label{ font-size:11px; color:#374151; display:block; }
     .kv input, .kv textarea, .kv select{ width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; font-size:12px; background:#fff; }
     .kv .ro{ background:#f8fafc; }
+
+    /* Deixar os spinners menores e discretos */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      transform: scale(0.6);
+      margin: 0 -4px;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
     @media print {
       .no-print { display:none!important; }
       body { background:white; margin:0; }
@@ -24,6 +35,26 @@
       a[href]:after { content: none !important; }
       @page { margin: 10mm; }
       header, footer { display: none !important; }
+      /* ↓ Oculta/mini as setas só no PDF */
+      /* remover setas de inputs numéricos */
+      input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+      input[type=number]::-webkit-outer-spin-button,
+      input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
+      /* reduzir/ocultar o resizer do textarea no canto */
+      .kv textarea{ resize:none !important; }
+      .kv textarea::-webkit-resizer{ display:none; width:0; height:0; }
+    }
+      body { background:white; margin:0; }
+      .shadow-xl{ box-shadow:none; }
+      a[href]:after { content: none !important; }
+      @page { margin: 10mm; }
+      header, footer { display: none !important; }
+      /* Print: reduzir spinners ao mínimo */
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+        transform: scale(0.4);
+        margin: 0 -6px;
+      }
     }
   </style>
 </head>
@@ -446,3 +477,4 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
   </script>
 </body>
 </html>
+

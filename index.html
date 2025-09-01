@@ -28,6 +28,13 @@
       -moz-appearance: textfield;
     }
 
+    /* Ajuste específico para o campo Dados Bancários */
+    #bankData {
+      resize: vertical !important; /* usuário pode aumentar/diminuir */
+      min-height: 80px; /* altura inicial maior */
+      overflow-y: auto; /* scroll só quando necessário */
+    }
+
     @media print {
       .no-print { display:none!important; }
       body { background:white; margin:0; }
@@ -35,26 +42,17 @@
       a[href]:after { content: none !important; }
       @page { margin: 10mm; }
       header, footer { display: none !important; }
-      /* ↓ Oculta/mini as setas só no PDF */
-      /* remover setas de inputs numéricos */
       input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
       input[type=number]::-webkit-outer-spin-button,
       input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-      /* reduzir/ocultar o resizer do textarea no canto */
+      /* No print, mantemos somente o banco ajustável */
       .kv textarea{ resize:none !important; }
-      .kv textarea::-webkit-resizer{ display:none; width:0; height:0; }
+      #bankData{ resize:vertical !important; }
     }
-      body { background:white; margin:0; }
-      .shadow-xl{ box-shadow:none; }
-      a[href]:after { content: none !important; }
-      @page { margin: 10mm; }
-      header, footer { display: none !important; }
-      /* Print: reduzir spinners ao mínimo */
-      input[type=number]::-webkit-inner-spin-button,
-      input[type=number]::-webkit-outer-spin-button {
-        transform: scale(0.4);
-        margin: 0 -6px;
-      }
+  /* Somente o campo Dados Bancários deve ser alto‑ajustável */
+    #bankData{ resize: vertical; min-height: 88px; }
+    @media print{
+      #bankData{ resize: vertical !important; overflow: visible !important; height: auto !important; }
     }
   </style>
 </head>
@@ -474,7 +472,18 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       window.print();
     });
   })();
+    // Auto-ajuste de altura apenas para o campo "Dados Bancários"
+    (function(){
+      function autosize(el){ if(!el) return; el.style.height='auto'; el.style.height=(el.scrollHeight)+ 'px'; }
+      const bank=document.getElementById('bankData');
+      if(bank){
+        ['input','change'].forEach(evt=> bank.addEventListener(evt, ()=> autosize(bank)));
+        window.addEventListener('load', ()=> autosize(bank));
+        window.addEventListener('beforeprint', ()=> autosize(bank));
+      }
+    })();
   </script>
 </body>
 </html>
+
 

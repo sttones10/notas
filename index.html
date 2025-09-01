@@ -30,9 +30,16 @@
 
     /* Ajuste específico para o campo Dados Bancários */
     #bankData {
-      resize: vertical !important; /* usuário pode aumentar/diminuir */
-      min-height: 80px; /* altura inicial maior */
-      overflow-y: auto; /* scroll só quando necessário */
+      resize: vertical !important;
+      min-height: 80px;
+      overflow-y: auto;
+    }
+
+    /* Ajuste específico para o campo Descrição/Quantidade */
+    #itemsBody textarea {
+      resize: vertical !important;
+      min-height: 80px;
+      overflow-y: auto;
     }
 
     @media print {
@@ -45,14 +52,7 @@
       input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
       input[type=number]::-webkit-outer-spin-button,
       input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
-      /* No print, mantemos somente o banco ajustável */
-      .kv textarea{ resize:none !important; }
-      #bankData{ resize:vertical !important; }
-    }
-  /* Somente o campo Dados Bancários deve ser alto‑ajustável */
-    #bankData{ resize: vertical; min-height: 88px; }
-    @media print{
-      #bankData{ resize: vertical !important; overflow: visible !important; height: auto !important; }
+      #bankData, #itemsBody textarea { resize:vertical !important; overflow:visible !important; height:auto !important; }
     }
   </style>
 </head>
@@ -472,18 +472,51 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       window.print();
     });
   })();
-    // Auto-ajuste de altura apenas para o campo "Dados Bancários"
+    // Auto‑ajuste de altura para "Dados Bancários" e todas as descrições (#itemsBody textarea)
     (function(){
-      function autosize(el){ if(!el) return; el.style.height='auto'; el.style.height=(el.scrollHeight)+ 'px'; }
-      const bank=document.getElementById('bankData');
+      function autosize(el){
+        if(!el) return;
+        el.style.height = 'auto';
+        el.style.height = (el.scrollHeight) + 'px';
+      }
+      // BANK DATA
+      const bank = document.getElementById('bankData');
       if(bank){
         ['input','change'].forEach(evt=> bank.addEventListener(evt, ()=> autosize(bank)));
         window.addEventListener('load', ()=> autosize(bank));
         window.addEventListener('beforeprint', ()=> autosize(bank));
       }
+      // DESCRIÇÕES EXISTENTES
+      function hookTextarea(tx){
+        if(!tx || tx.__autosized) return; // evita duplicar listeners
+        tx.__autosized = true;
+        ['input','change'].forEach(evt=> tx.addEventListener(evt, ()=> autosize(tx)));
+        autosize(tx);
+      }
+      // Inicial
+      document.querySelectorAll('#itemsBody textarea').forEach(hookTextarea);
+      // Delegação para qualquer textarea criada depois (ex.: Adicionar item)
+      document.addEventListener('input', (e)=>{
+        if(e.target && e.target.tagName==='TEXTAREA' && e.target.closest('#itemsBody')){
+          hookTextarea(e.target);
+        }
+      });
+      // Observer para novas linhas/descrições inseridas dinamicamente
+      const itemsBody = document.getElementById('itemsBody');
+      if(itemsBody){
+        const mo = new MutationObserver(()=>{
+          itemsBody.querySelectorAll('textarea').forEach(hookTextarea);
+        });
+        mo.observe(itemsBody, {childList:true, subtree:true});
+      }
+      // Ajustar antes de imprimir (garante tudo expandido no PDF)
+      window.addEventListener('beforeprint', ()=>{
+        document.querySelectorAll('#itemsBody textarea').forEach(autosize);
+      });
     })();
   </script>
 </body>
 </html>
+
 
 

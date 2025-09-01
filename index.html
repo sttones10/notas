@@ -15,8 +15,7 @@
     table.invoice thead tr{ border-top:1.5px solid var(--ink); border-bottom:1.5px solid var(--ink); }
     table.invoice tfoot tr{ border-top:1.5px solid var(--ink); }
     .kv label{ font-size:11px; color:#374151; display:block; }
-    .kv input, .kv textarea, .kv select{ width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; font-size:12px; background:#fff; resize:none; overflow:hidden; }
-    .kv textarea{ min-height:40px; line-height:1.4; }
+    .kv input, .kv textarea, .kv select{ width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:6px 8px; font-size:12px; background:#fff; }
     .kv .ro{ background:#f8fafc; }
     @media print {
       .no-print { display:none!important; }
@@ -25,27 +24,7 @@
       a[href]:after { content: none !important; }
       @page { margin: 10mm; }
       header, footer { display: none !important; }
-      /* PRINT: garantir texto completo e sem controles nas caixas */
-      .kv textarea{ overflow: visible !important; height: auto !important; resize: none !important; }
-      textarea::-webkit-resizer{ display:none; }
-      /* esconder setas de inputs numéricos no PDF */
-      input[type=number]{ -webkit-appearance: none; -moz-appearance: textfield; appearance: textfield; }
-      input[type=number]::-webkit-outer-spin-button,
-      input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
     }
-      body { background:white; margin:0; }
-      .shadow-xl{ box-shadow:none; }
-      a[href]:after { content: none !important; }
-      @page { margin: 10mm; }
-      header, footer { display: none !important; }
-      .kv input, .kv textarea{ border:none!important; outline:none!important; box-shadow:none!important; }
-    }
-  /* Geral: melhorar comportamento das caixas */
-    .kv textarea{ resize: vertical; }
-    /* esconder setas de number também fora da impressão (opcional) */
-    input[type=number]{ -moz-appearance: textfield; }
-    input[type=number]::-webkit-outer-spin-button,
-    input[type=number]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
   </style>
 </head>
 <body class="max-w-4xl mx-auto p-4 text-slate-800">
@@ -464,50 +443,6 @@ TRANSELIAN TRANSPORTES LTDA</textarea>
       window.print();
     });
   })();
-    (function(){
-    const $ = (s)=>document.querySelector(s);
-
-    function getFileName(){
-      const client = $('#clientName')?.value?.trim() || 'Cliente';
-      const num = $('#invNumberView')?.textContent?.trim() || '000';
-      const data = $('#invDateView')?.textContent?.trim() || '';
-      let mes = '';
-      if(data){
-        const partes=data.split('/');
-        if(partes.length>=2){
-          const mesNum = parseInt(partes[1],10);
-          const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-          mes = meses[mesNum-1] || '';
-        }
-      }
-      return `${client} - Nota ${num} - ${mes}.pdf`;
-    }
-
-    document.getElementById('btnExportPDF').addEventListener('click',()=>{
-      const fileName = getFileName();
-      const originalTitle = document.title;
-      document.title = fileName.replace(/\.pdf$/,'');
-      const restore = () => { document.title = originalTitle; window.removeEventListener('afterprint', restore); };
-      window.addEventListener('afterprint', restore);
-      autosizeAll(); // garante que os textos estejam expandidos antes de imprimir
-      window.print();
-    });
-
-    // ===== Autoajuste das textareas =====
-    function autosize(el){
-      if(!el) return;
-      el.style.height='auto';
-      el.style.height = (el.scrollHeight + 2) + 'px';
-    }
-    function autosizeAll(){ document.querySelectorAll('textarea').forEach(autosize); }
-    window.addEventListener('load', autosizeAll);
-    window.addEventListener('beforeprint', autosizeAll);
-    document.addEventListener('input', (e)=>{ if(e.target && e.target.tagName==='TEXTAREA') autosize(e.target); });
-  })();
   </script>
 </body>
 </html>
-
-
-
-
